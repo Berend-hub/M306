@@ -1,0 +1,1354 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Zeiterfassungssystem – Demo</title>
+  <style>
+    :root{
+      --bg:#0f172a;
+      --panel:#111827;
+      --panel-2:#0b1220;
+      --text:#e5e7eb;
+      --muted:#9ca3af;
+      --accent:#38bdf8;
+      --accent-2:#22c55e;
+      --danger:#f87171;
+      --warn:#fbbf24;
+      --border:rgba(255,255,255,0.08);
+      --shadow: 0 8px 30px rgba(0,0,0,0.35);
+      --radius: 14px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+      background: radial-gradient(1200px 800px at 10% 10%, #0b2a3a 0%, transparent 45%),
+                  radial-gradient(1000px 700px at 90% 20%, #12233d 0%, transparent 40%),
+                  var(--bg);
+      color:var(--text);
+    }
+    header{
+      padding:28px 22px 6px 22px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .title{
+      display:flex; gap:14px; align-items:center;
+    }
+    .badge{
+      background: linear-gradient(135deg, rgba(56,189,248,0.18), rgba(34,197,94,0.18));
+      border:1px solid var(--border);
+      padding:4px 10px;
+      border-radius:999px;
+      font-size:11px;
+      color:var(--muted);
+    }
+    h1{
+      font-size: 26px;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+      margin: 0 0 6px 0;
+    }
+    .subtitle{
+      color:var(--muted);
+      font-size: 13.5px;
+      margin-bottom: 12px;
+    }
+
+    main{
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 14px 22px 40px 22px;
+      display:grid;
+      grid-template-columns: 280px 1fr;
+      gap: 18px;
+    }
+    @media (max-width: 980px){
+      main{grid-template-columns: 1fr}
+    }
+
+    .sidebar, .content-card{
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), transparent 35%),
+                  var(--panel);
+      border:1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+    .sidebar{
+      padding: 16px;
+      height: fit-content;
+      position: sticky; top: 14px;
+    }
+    @media (max-width: 980px){
+      .sidebar{position: static}
+    }
+    .section-title{
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      color: var(--muted);
+      margin: 14px 0 8px;
+    }
+    .role-btn{
+      width:100%;
+      text-align:left;
+      padding: 10px 12px;
+      margin: 6px 0;
+      border-radius: 10px;
+      border:1px solid var(--border);
+      background: var(--panel-2);
+      color: var(--text);
+      cursor:pointer;
+      transition: 0.15s ease;
+      font-size: 13.5px;
+    }
+    .role-btn.active{
+      border-color: rgba(56,189,248,0.55);
+      box-shadow: inset 0 0 0 1px rgba(56,189,248,0.15);
+      background: linear-gradient(135deg, rgba(56,189,248,0.12), rgba(34,197,94,0.08));
+    }
+    .role-btn:hover{transform: translateY(-1px)}
+
+    select, input, button{
+      font: inherit;
+    }
+    .field{
+      display:grid;
+      gap:6px;
+      margin-bottom: 10px;
+    }
+    label{
+      font-size: 11.5px;
+      color: var(--muted);
+    }
+    input, select{
+      background: #0b1324;
+      color: var(--text);
+      border:1px solid var(--border);
+      padding: 9px 10px;
+      border-radius: 10px;
+      outline: none;
+    }
+    input:focus, select:focus{
+      border-color: rgba(56,189,248,0.55);
+      box-shadow: 0 0 0 3px rgba(56,189,248,0.12);
+    }
+
+    .content-card{
+      padding: 18px 18px 10px 18px;
+      min-height: 520px;
+    }
+    .content-header{
+      display:flex;
+      align-items:center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .content-header h2{
+      font-size: 18px;
+      margin:0;
+    }
+    .toolbar{
+      display:flex; gap:8px; flex-wrap: wrap;
+    }
+    .btn{
+      border:1px solid var(--border);
+      background: #0b1324;
+      color: var(--text);
+      padding: 8px 10px;
+      border-radius: 10px;
+      cursor:pointer;
+      font-size: 12.5px;
+      transition: 0.15s ease;
+    }
+    .btn.primary{
+      background: linear-gradient(135deg, rgba(56,189,248,0.18), rgba(56,189,248,0.05));
+      border-color: rgba(56,189,248,0.45);
+    }
+    .btn.success{
+      background: linear-gradient(135deg, rgba(34,197,94,0.18), rgba(34,197,94,0.05));
+      border-color: rgba(34,197,94,0.45);
+    }
+    .btn.danger{
+      background: linear-gradient(135deg, rgba(248,113,113,0.18), rgba(248,113,113,0.05));
+      border-color: rgba(248,113,113,0.45);
+    }
+    .btn:hover{transform: translateY(-1px)}
+
+    .grid-2{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+    @media (max-width: 720px){
+      .grid-2{grid-template-columns: 1fr}
+    }
+
+    .panel{
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), transparent 35%),
+                  #0a1222;
+      border:1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+    }
+    .panel h3{
+      font-size: 14px;
+      margin: 0 0 8px 0;
+    }
+    .muted{
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    table{
+      width:100%;
+      border-collapse: collapse;
+      font-size: 12.5px;
+      margin-top: 8px;
+    }
+    th, td{
+      padding: 9px 8px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+    th{
+      text-align:left;
+      color: var(--muted);
+      font-weight: 600;
+      font-size: 11.5px;
+    }
+    tr:hover td{
+      background: rgba(255,255,255,0.02);
+    }
+
+    .pill{
+      display:inline-flex; align-items:center; gap:6px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 10.5px;
+      border:1px solid var(--border);
+      color: var(--muted);
+    }
+    .pill.work{color:#c7f9ff; border-color: rgba(56,189,248,0.35)}
+    .pill.leave{color:#d1fae5; border-color: rgba(34,197,94,0.35)}
+    .pill.warn{color:#fff3c4; border-color: rgba(251,191,36,0.4)}
+    .pill.danger{color:#ffd1d1; border-color: rgba(248,113,113,0.4)}
+
+    .kpi-row{
+      display:grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+    @media (max-width: 720px){
+      .kpi-row{grid-template-columns: 1fr}
+    }
+    .kpi{
+      background: #0b1324;
+      border:1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px;
+    }
+    .kpi .label{font-size: 10.5px; color: var(--muted)}
+    .kpi .value{font-size: 20px; font-weight: 700; margin-top: 2px}
+    .kpi .hint{font-size: 10.5px; color: var(--muted)}
+
+    .error{
+      border:1px solid rgba(248,113,113,0.4);
+      background: rgba(248,113,113,0.08);
+      color:#ffd1d1;
+      padding: 8px 10px;
+      border-radius: 10px;
+      font-size: 12px;
+      margin-top: 8px;
+    }
+    .ok{
+      border:1px solid rgba(34,197,94,0.4);
+      background: rgba(34,197,94,0.08);
+      color:#d1fae5;
+      padding: 8px 10px;
+      border-radius: 10px;
+      font-size: 12px;
+      margin-top: 8px;
+    }
+    .tiny{
+      font-size: 10.5px;
+      color: var(--muted);
+    }
+    .right{
+      text-align:right;
+    }
+    .row{
+      display:flex; gap: 10px; flex-wrap: wrap; align-items:center;
+    }
+    .spacer{flex:1}
+    .divider{
+      height:1px; background: var(--border);
+      margin: 12px 0;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="title">
+      <h1>Zeiterfassungssystem – interaktive Demo</h1>
+      <span class="badge">Single-File • LocalStorage • ohne Backend</span>
+    </div>
+    <div class="subtitle">
+      Rollenbasierte Mini-Demo für Mitarbeiter, Projektleiter, Entwicklungsleiter und Personal –
+      passend zur Projektaufgabe.
+    </div>
+  </header>
+
+  <main>
+    <aside class="sidebar">
+      <div class="section-title">Rolle</div>
+      <button class="role-btn active" data-role="employee">👤 Mitarbeiter</button>
+      <button class="role-btn" data-role="pm">📌 Projektleiter</button>
+      <button class="role-btn" data-role="devlead">🧭 Entwicklungsleiter</button>
+      <button class="role-btn" data-role="hr">📅 Personal</button>
+
+      <div class="divider"></div>
+
+      <div class="section-title">Demo-Steuerung</div>
+      <button class="btn success" id="seedBtn">Beispieldaten laden</button>
+      <button class="btn" id="exportBtn">Daten exportieren (JSON)</button>
+      <button class="btn danger" id="resetBtn">Alles zurücksetzen</button>
+
+      <div class="divider"></div>
+
+      <div class="section-title">Hinweis</div>
+      <div class="tiny">
+        Diese Demo simuliert ein späteres System:
+        echte Authentifizierung, Workflows und Integrationen
+        (z.B. M365/AD) sind hier bewusst weggelassen.
+      </div>
+    </aside>
+
+    <section class="content-card">
+      <div id="view"></div>
+    </section>
+  </main>
+
+<script>
+/** =========================
+ *  Simple Time Tracking Demo
+ *  - Data persisted in localStorage
+ *  - Roles simulated via UI tabs
+ *  ========================= */
+
+const STORE_KEY = "zeiterfassung_demo_v1";
+
+const RULES = {
+  // Vereinfachte Demo-Regeln (konfigurierbar)
+  // für echte Umsetzung: firmenspezifisch / gesetzlich prüfen.
+  maxWorkMinutesPerDay: 10 * 60,     // Demo: 10h
+  minBreakMinutesIfOver: [
+    { thresholdMin: 6 * 60, breakMin: 30 },
+    { thresholdMin: 9 * 60, breakMin: 45 },
+  ],
+  standardDailyTargetMinutes: 8 * 60 // Sollzeit für Gleitzeit-Berechnung
+};
+
+const DEFAULT_DATA = {
+  employees: [
+    { id:"e1", name:"Anna Keller", type:"Vollzeit", monthlyTargetMinutes: RULES.standardDailyTargetMinutes * 21 },
+    { id:"e2", name:"Noah Baumann", type:"Teilzeit 60%", monthlyTargetMinutes: Math.round(RULES.standardDailyTargetMinutes * 21 * 0.6) },
+    { id:"e3", name:"Maya Schmid", type:"Vollzeit", monthlyTargetMinutes: RULES.standardDailyTargetMinutes * 21 },
+  ],
+  projects: [
+    { id:"p1", name:"Kunde A – IoT Prototyp", leaderId:"e1" },
+    { id:"p2", name:"Kunde B – Cloud Migration", leaderId:"e3" },
+    { id:"p3", name:"Intern – Tooling", leaderId:"e1" },
+  ],
+  // entries = work or leave
+  entries: [
+    // Seed data is injected by seed button; keep empty here
+  ]
+};
+
+function loadData(){
+  const raw = localStorage.getItem(STORE_KEY);
+  if(!raw){
+    return structuredClone(DEFAULT_DATA);
+  }
+  try{
+    const data = JSON.parse(raw);
+    // minimal shape safety
+    if(!data.employees || !data.projects || !data.entries){
+      return structuredClone(DEFAULT_DATA);
+    }
+    return data;
+  }catch(e){
+    return structuredClone(DEFAULT_DATA);
+  }
+}
+function saveData(data){
+  localStorage.setItem(STORE_KEY, JSON.stringify(data));
+}
+
+let state = {
+  role: "employee",
+  data: loadData(),
+  ui: {
+    selectedEmployeeId: "e1",
+    selectedProjectId: "p1",
+    filterMonth: toMonthInputValue(new Date()),
+  }
+};
+
+function setRole(role){
+  state.role = role;
+  render();
+}
+
+function toISODate(d){ // YYYY-MM-DD
+  const dt = new Date(d);
+  const y = dt.getFullYear();
+  const m = String(dt.getMonth()+1).padStart(2,"0");
+  const day = String(dt.getDate()).padStart(2,"0");
+  return `${y}-${m}-${day}`;
+}
+function toMonthInputValue(d){
+  const dt = new Date(d);
+  const y = dt.getFullYear();
+  const m = String(dt.getMonth()+1).padStart(2,"0");
+  return `${y}-${m}`;
+}
+function parseMonthValue(v){
+  const [y,m] = v.split("-").map(Number);
+  return { y, m }; // m 1-12
+}
+function monthStartEnd(y,m){
+  const start = new Date(y, m-1, 1);
+  const end = new Date(y, m, 0);
+  return { start, end };
+}
+
+function minutesBetween(startStr, endStr){
+  // startStr/endStr: "HH:MM"
+  const [sh, sm] = startStr.split(":").map(Number);
+  const [eh, em] = endStr.split(":").map(Number);
+  const start = sh*60+sm;
+  const end = eh*60+em;
+  return end - start;
+}
+
+function normalizeNumber(n){
+  return Math.round((n + Number.EPSILON) * 100) / 100;
+}
+function minutesToHours(min){
+  return normalizeNumber(min/60);
+}
+
+function getEmployeeById(id){
+  return state.data.employees.find(e => e.id === id);
+}
+function getProjectById(id){
+  return state.data.projects.find(p => p.id === id);
+}
+
+function entriesForEmployeeInMonth(empId, monthVal){
+  const {y,m} = parseMonthValue(monthVal);
+  const {start,end} = monthStartEnd(y,m);
+  const s = toISODate(start);
+  const e = toISODate(end);
+  return state.data.entries.filter(en =>
+    en.employeeId === empId &&
+    en.date >= s && en.date <= e
+  );
+}
+function entriesForProjectInMonth(projectId, monthVal){
+  const {y,m} = parseMonthValue(monthVal);
+  const {start,end} = monthStartEnd(y,m);
+  const s = toISODate(start);
+  const e = toISODate(end);
+  return state.data.entries.filter(en =>
+    en.type === "work" &&
+    en.projectId === projectId &&
+    en.date >= s && en.date <= e
+  );
+}
+function entriesInMonth(monthVal){
+  const {y,m} = parseMonthValue(monthVal);
+  const {start,end} = monthStartEnd(y,m);
+  const s = toISODate(start);
+  const e = toISODate(end);
+  return state.data.entries.filter(en => en.date >= s && en.date <= e);
+}
+
+function computeWorkMinutes(entry){
+  if(entry.type !== "work") return 0;
+  const base = minutesBetween(entry.startTime, entry.endTime);
+  const breakMin = Number(entry.breakMinutes || 0);
+  return Math.max(0, base - breakMin);
+}
+
+function dailyTotals(empId){
+  const map = new Map();
+  state.data.entries
+    .filter(e => e.employeeId === empId)
+    .forEach(e => {
+      const key = e.date;
+      const prev = map.get(key) || { workMin:0, leaveMin:0, entries:[] };
+      prev.entries.push(e);
+      if(e.type === "work"){
+        prev.workMin += computeWorkMinutes(e);
+      }else{
+        prev.leaveMin += Number(e.leaveMinutes || 0);
+      }
+      map.set(key, prev);
+    });
+  return map; // date -> totals
+}
+
+function validateWorkEntryDraft(draft){
+  const errors = [];
+  if(!draft.date) errors.push("Datum fehlt.");
+  if(!draft.employeeId) errors.push("Mitarbeiter fehlt.");
+  if(!draft.projectId) errors.push("Projekt fehlt.");
+  if(!draft.startTime || !draft.endTime) errors.push("Start- und Endzeit fehlen.");
+  if(draft.startTime && draft.endTime){
+    const diff = minutesBetween(draft.startTime, draft.endTime);
+    if(diff <= 0) errors.push("Endzeit muss nach Startzeit liegen.");
+  }
+
+  // Pausen-Logik
+  const raw = minutesBetween(draft.startTime || "00:00", draft.endTime || "00:00");
+  const breakMin = Number(draft.breakMinutes || 0);
+  const worked = Math.max(0, raw - breakMin);
+
+  // Mindestpause je nach Schwelle
+  for(const rule of RULES.minBreakMinutesIfOver){
+    if(raw > rule.thresholdMin && breakMin < rule.breakMin){
+      errors.push(`Mindestpause: ${rule.breakMin} Min bei Arbeit über ${minutesToHours(rule.thresholdMin)}h (Demo-Regel).`);
+      break;
+    }
+  }
+
+  // Max Tagesarbeitszeit prüfen (vereinfachte Demo)
+  if(draft.date && draft.employeeId){
+    const totals = dailyTotals(draft.employeeId).get(draft.date);
+    const existing = totals ? totals.workMin : 0;
+    if(existing + worked > RULES.maxWorkMinutesPerDay){
+      errors.push(`Maximale Tagesarbeitszeit überschritten (${minutesToHours(RULES.maxWorkMinutesPerDay)}h, Demo-Regel).`);
+    }
+  }
+
+  return errors;
+}
+
+function addWorkEntry(draft){
+  const errors = validateWorkEntryDraft(draft);
+  if(errors.length) return { ok:false, errors };
+
+  const entry = {
+    id: crypto.randomUUID(),
+    type: "work",
+    employeeId: draft.employeeId,
+    projectId: draft.projectId,
+    date: draft.date,
+    startTime: draft.startTime,
+    endTime: draft.endTime,
+    breakMinutes: Number(draft.breakMinutes || 0),
+    note: draft.note || ""
+  };
+  state.data.entries.push(entry);
+  saveData(state.data);
+  return { ok:true, entry };
+}
+
+function addLeaveEntry(draft){
+  const errors = [];
+  if(!draft.date) errors.push("Datum fehlt.");
+  if(!draft.employeeId) errors.push("Mitarbeiter fehlt.");
+  if(!draft.leaveKind) errors.push("Abwesenheitsart fehlt.");
+  const mins = Number(draft.leaveMinutes || 0);
+  if(!mins || mins <= 0) errors.push("Abwesenheitsdauer muss > 0 sein.");
+
+  if(errors.length) return { ok:false, errors };
+
+  const entry = {
+    id: crypto.randomUUID(),
+    type: "leave",
+    employeeId: draft.employeeId,
+    date: draft.date,
+    leaveKind: draft.leaveKind,
+    leaveMinutes: mins,
+    note: draft.note || ""
+  };
+  state.data.entries.push(entry);
+  saveData(state.data);
+  return { ok:true, entry };
+}
+
+function deleteEntry(id){
+  state.data.entries = state.data.entries.filter(e => e.id !== id);
+  saveData(state.data);
+}
+
+function computeEmployeeMonthSummary(empId, monthVal){
+  const emp = getEmployeeById(empId);
+  const entries = entriesForEmployeeInMonth(empId, monthVal);
+
+  let workMin = 0;
+  let leaveMin = 0;
+  for(const e of entries){
+    if(e.type === "work") workMin += computeWorkMinutes(e);
+    else leaveMin += Number(e.leaveMinutes || 0);
+  }
+
+  const target = emp?.monthlyTargetMinutes ?? RULES.standardDailyTargetMinutes * 21;
+  // Sehr simple Interpretation: Leave zählt als "neutral" im Sollvergleich?
+  // Für Demo: wir rechnen work + leave als "erfüllte Zeit".
+  const credited = workMin + leaveMin;
+  const flex = credited - target;
+
+  return {
+    workMin, leaveMin, targetMin: target, flexMin: flex
+  };
+}
+
+function groupBy(arr, keyFn){
+  const map = new Map();
+  for(const item of arr){
+    const k = keyFn(item);
+    const list = map.get(k) || [];
+    list.push(item);
+    map.set(k, list);
+  }
+  return map;
+}
+
+/** =========================
+ *  Rendering
+ *  ========================= */
+
+const view = document.getElementById("view");
+
+function render(){
+  if(state.role === "employee") renderEmployee();
+  if(state.role === "pm") renderPM();
+  if(state.role === "devlead") renderDevLead();
+  if(state.role === "hr") renderHR();
+}
+
+function renderEmployee(){
+  const empId = state.ui.selectedEmployeeId || state.data.employees[0]?.id;
+  const monthVal = state.ui.filterMonth;
+
+  const emp = getEmployeeById(empId);
+
+  view.innerHTML = `
+    <div class="content-header">
+      <h2>👤 Mitarbeiter-Ansicht</h2>
+      <div class="toolbar">
+        <span class="pill work">Zeiten erfassen</span>
+        <span class="pill leave">Abwesenheiten</span>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="panel">
+        <h3>Arbeitszeit auf Projekt erfassen</h3>
+        <div class="field">
+          <label>Mitarbeiter</label>
+          <select id="empSelect"></select>
+        </div>
+        <div class="field">
+          <label>Projekt</label>
+          <select id="projSelect"></select>
+        </div>
+        <div class="grid-2">
+          <div class="field">
+            <label>Datum</label>
+            <input id="workDate" type="date" />
+          </div>
+          <div class="field">
+            <label>Pause (Min.)</label>
+            <input id="workBreak" type="number" min="0" step="5" value="30" />
+          </div>
+        </div>
+        <div class="grid-2">
+          <div class="field">
+            <label>Start</label>
+            <input id="workStart" type="time" />
+          </div>
+          <div class="field">
+            <label>Ende</label>
+            <input id="workEnd" type="time" />
+          </div>
+        </div>
+        <div class="field">
+          <label>Notiz (optional)</label>
+          <input id="workNote" type="text" placeholder="z.B. Review, Workshop, Implementierung" />
+        </div>
+        <button class="btn primary" id="addWorkBtn">Eintrag hinzufügen</button>
+        <div id="workMsg"></div>
+        <div class="divider"></div>
+        <div class="tiny">
+          Demo-Regeln: Mindestpause ab 6h/9h, max. Tagesarbeitszeit.
+          In einer realen Lösung wären Regeln pro Land/Firma konfigurierbar.
+        </div>
+      </div>
+
+      <div class="panel">
+        <h3>Abwesenheit erfassen</h3>
+        <div class="field">
+          <label>Mitarbeiter</label>
+          <select id="empSelect2"></select>
+        </div>
+        <div class="grid-2">
+          <div class="field">
+            <label>Datum</label>
+            <input id="leaveDate" type="date" />
+          </div>
+          <div class="field">
+            <label>Dauer (Stunden)</label>
+            <input id="leaveHours" type="number" min="0" step="0.25" value="8" />
+          </div>
+        </div>
+        <div class="field">
+          <label>Art</label>
+          <select id="leaveKind">
+            <option value="Ferien">Ferien</option>
+            <option value="Militär">Militär</option>
+            <option value="Krankheit">Krankheit</option>
+            <option value="Weiterbildung">Weiterbildung</option>
+            <option value="Sonstiges">Sonstiges</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Notiz (optional)</label>
+          <input id="leaveNote" type="text" />
+        </div>
+        <button class="btn success" id="addLeaveBtn">Abwesenheit hinzufügen</button>
+        <div id="leaveMsg"></div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="panel">
+      <div class="row">
+        <h3 style="margin:0">Meine Einträge</h3>
+        <span class="spacer"></span>
+        <div class="field" style="margin:0; min-width: 180px">
+          <label>Monat</label>
+          <input id="monthFilter" type="month" />
+        </div>
+      </div>
+
+      <div class="kpi-row" id="empKpis"></div>
+
+      <table id="empTable">
+        <thead>
+          <tr>
+            <th>Datum</th>
+            <th>Typ</th>
+            <th>Projekt / Art</th>
+            <th>Zeitraum</th>
+            <th class="right">Pause</th>
+            <th class="right">Stunden</th>
+            <th>Notiz</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  `;
+
+  // Populate selects
+  const empSelect = document.getElementById("empSelect");
+  const empSelect2 = document.getElementById("empSelect2");
+  for(const e of state.data.employees){
+    const opt = document.createElement("option");
+    opt.value = e.id; opt.textContent = `${e.name} (${e.type})`;
+    empSelect.appendChild(opt);
+    empSelect2.appendChild(opt.cloneNode(true));
+  }
+  empSelect.value = empId;
+  empSelect2.value = empId;
+
+  const projSelect = document.getElementById("projSelect");
+  for(const p of state.data.projects){
+    const leader = getEmployeeById(p.leaderId)?.name || "—";
+    const opt = document.createElement("option");
+    opt.value = p.id; opt.textContent = `${p.name} · PL: ${leader}`;
+    projSelect.appendChild(opt);
+  }
+  projSelect.value = state.ui.selectedProjectId || state.data.projects[0]?.id;
+
+  // Defaults
+  const today = toISODate(new Date());
+  document.getElementById("workDate").value = today;
+  document.getElementById("leaveDate").value = today;
+  document.getElementById("monthFilter").value = monthVal;
+
+  // Bind events
+  empSelect.addEventListener("change", () => {
+    state.ui.selectedEmployeeId = empSelect.value;
+    saveData(state.data);
+    render();
+  });
+  empSelect2.addEventListener("change", () => {
+    state.ui.selectedEmployeeId = empSelect2.value;
+    render();
+  });
+  projSelect.addEventListener("change", () => {
+    state.ui.selectedProjectId = projSelect.value;
+  });
+
+  document.getElementById("monthFilter").addEventListener("change", (e) => {
+    state.ui.filterMonth = e.target.value;
+    render();
+  });
+
+  document.getElementById("addWorkBtn").addEventListener("click", () => {
+    const draft = {
+      employeeId: empSelect.value,
+      projectId: projSelect.value,
+      date: document.getElementById("workDate").value,
+      startTime: document.getElementById("workStart").value,
+      endTime: document.getElementById("workEnd").value,
+      breakMinutes: document.getElementById("workBreak").value,
+      note: document.getElementById("workNote").value
+    };
+    const res = addWorkEntry(draft);
+    const msg = document.getElementById("workMsg");
+    if(!res.ok){
+      msg.innerHTML = `<div class="error">${res.errors.join("<br>")}</div>`;
+    }else{
+      msg.innerHTML = `<div class="ok">Arbeitszeit erfasst.</div>`;
+      render();
+    }
+  });
+
+  document.getElementById("addLeaveBtn").addEventListener("click", () => {
+    const hours = Number(document.getElementById("leaveHours").value || 0);
+    const draft = {
+      employeeId: empSelect2.value,
+      date: document.getElementById("leaveDate").value,
+      leaveKind: document.getElementById("leaveKind").value,
+      leaveMinutes: Math.round(hours * 60),
+      note: document.getElementById("leaveNote").value
+    };
+    const res = addLeaveEntry(draft);
+    const msg = document.getElementById("leaveMsg");
+    if(!res.ok){
+      msg.innerHTML = `<div class="error">${res.errors.join("<br>")}</div>`;
+    }else{
+      msg.innerHTML = `<div class="ok">Abwesenheit erfasst.</div>`;
+      render();
+    }
+  });
+
+  // Render KPIs & table
+  renderEmployeeMonth(empId, monthVal);
+}
+
+function renderEmployeeMonth(empId, monthVal){
+  const summary = computeEmployeeMonthSummary(empId, monthVal);
+  const kpis = document.getElementById("empKpis");
+
+  const flexH = minutesToHours(summary.flexMin);
+  const flexPillClass = summary.flexMin < 0 ? "danger" : (summary.flexMin === 0 ? "warn" : "work");
+
+  kpis.innerHTML = `
+    <div class="kpi">
+      <div class="label">Arbeitszeit (Monat)</div>
+      <div class="value">${minutesToHours(summary.workMin)} h</div>
+      <div class="hint">nur Projektarbeit</div>
+    </div>
+    <div class="kpi">
+      <div class="label">Abwesenheiten (Monat)</div>
+      <div class="value">${minutesToHours(summary.leaveMin)} h</div>
+      <div class="hint">Ferien/Militär/Krank etc.</div>
+    </div>
+    <div class="kpi">
+      <div class="label">Gleitzeit-Saldo (Monat)</div>
+      <div class="value">
+        <span class="pill ${flexPillClass}">${flexH > 0 ? "+" : ""}${flexH} h</span>
+      </div>
+      <div class="hint">Soll: ${minutesToHours(summary.targetMin)} h</div>
+    </div>
+  `;
+
+  const tbody = document.querySelector("#empTable tbody");
+  tbody.innerHTML = "";
+
+  const entries = entriesForEmployeeInMonth(empId, monthVal)
+    .sort((a,b) => (a.date > b.date ? -1 : 1));
+
+  for(const e of entries){
+    const tr = document.createElement("tr");
+
+    let typeLabel = e.type === "work"
+      ? `<span class="pill work">Arbeit</span>`
+      : `<span class="pill leave">Abwesenheit</span>`;
+
+    let projOrKind = e.type === "work"
+      ? (getProjectById(e.projectId)?.name || "Unbekannt")
+      : e.leaveKind;
+
+    let timeRange = e.type === "work"
+      ? `${e.startTime}–${e.endTime}`
+      : "—";
+
+    let pauseCell = e.type === "work"
+      ? `${e.breakMinutes || 0} min`
+      : "—";
+
+    let hours = e.type === "work"
+      ? minutesToHours(computeWorkMinutes(e))
+      : minutesToHours(Number(e.leaveMinutes || 0));
+
+    tr.innerHTML = `
+      <td>${e.date}</td>
+      <td>${typeLabel}</td>
+      <td>${projOrKind}</td>
+      <td>${timeRange}</td>
+      <td class="right">${pauseCell}</td>
+      <td class="right"><strong>${hours}</strong></td>
+      <td>${e.note ? escapeHtml(e.note) : ""}</td>
+      <td class="right">
+        <button class="btn danger" data-del="${e.id}">Löschen</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  }
+
+  tbody.querySelectorAll("[data-del]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      deleteEntry(btn.getAttribute("data-del"));
+      render();
+    });
+  });
+}
+
+function renderPM(){
+  const monthVal = state.ui.filterMonth;
+
+  view.innerHTML = `
+    <div class="content-header">
+      <h2>📌 Projektleiter-Ansicht</h2>
+      <div class="toolbar">
+        <div class="field" style="margin:0; min-width:180px">
+          <label>Monat</label>
+          <input id="monthFilter" type="month" />
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h3>Stunden pro Projekt (Monat)</h3>
+      <table id="pmTable">
+        <thead>
+          <tr>
+            <th>Projekt</th>
+            <th>Projektleiter</th>
+            <th class="right">Erfasste Stunden</th>
+            <th class="right">Einträge</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <div class="tiny">In dieser Demo sehen Projektleiter alle Projekte. In real: Rechte je Verantwortlichkeit.</div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="panel">
+      <h3>Detailansicht</h3>
+      <div class="row">
+        <div class="field" style="min-width: 260px; margin:0">
+          <label>Projekt auswählen</label>
+          <select id="pmProjectSelect"></select>
+        </div>
+        <span class="spacer"></span>
+        <span class="pill work">nur Arbeitseinträge</span>
+      </div>
+
+      <table id="pmDetailTable">
+        <thead>
+          <tr>
+            <th>Datum</th>
+            <th>Mitarbeiter</th>
+            <th>Zeitraum</th>
+            <th class="right">Pause</th>
+            <th class="right">Stunden</th>
+            <th>Notiz</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  `;
+
+  document.getElementById("monthFilter").value = monthVal;
+  document.getElementById("monthFilter").addEventListener("change", (e) => {
+    state.ui.filterMonth = e.target.value;
+    render();
+  });
+
+  // Summary table
+  const tbody = document.querySelector("#pmTable tbody");
+  tbody.innerHTML = "";
+
+  for(const p of state.data.projects){
+    const entries = entriesForProjectInMonth(p.id, monthVal);
+    const totalMin = entries.reduce((s,e)=> s+computeWorkMinutes(e), 0);
+    const leaderName = getEmployeeById(p.leaderId)?.name || "—";
+
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${p.name}</td>
+      <td>${leaderName}</td>
+      <td class="right"><strong>${minutesToHours(totalMin)}</strong></td>
+      <td class="right">${entries.length}</td>
+    `;
+    tbody.appendChild(tr);
+  }
+
+  // Detail select
+  const sel = document.getElementById("pmProjectSelect");
+  for(const p of state.data.projects){
+    const opt = document.createElement("option");
+    opt.value = p.id;
+    opt.textContent = p.name;
+    sel.appendChild(opt);
+  }
+  sel.value = state.ui.selectedProjectId || state.data.projects[0]?.id;
+
+  sel.addEventListener("change", () => {
+    state.ui.selectedProjectId = sel.value;
+    renderPMDetail(sel.value, monthVal);
+  });
+
+  renderPMDetail(sel.value, monthVal);
+}
+
+function renderPMDetail(projectId, monthVal){
+  const tbody = document.querySelector("#pmDetailTable tbody");
+  if(!tbody) return;
+  tbody.innerHTML = "";
+
+  const entries = entriesForProjectInMonth(projectId, monthVal)
+    .sort((a,b) => (a.date > b.date ? -1 : 1));
+
+  for(const e of entries){
+    const empName = getEmployeeById(e.employeeId)?.name || "—";
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${e.date}</td>
+      <td>${empName}</td>
+      <td>${e.startTime}–${e.endTime}</td>
+      <td class="right">${e.breakMinutes || 0} min</td>
+      <td class="right"><strong>${minutesToHours(computeWorkMinutes(e))}</strong></td>
+      <td>${e.note ? escapeHtml(e.note) : ""}</td>
+    `;
+    tbody.appendChild(tr);
+  }
+}
+
+function renderDevLead(){
+  const monthVal = state.ui.filterMonth;
+  const entries = entriesInMonth(monthVal).filter(e => e.type === "work");
+
+  const byProject = groupBy(entries, e => e.projectId);
+
+  // Build overview rows
+  const rows = state.data.projects.map(p => {
+    const list = byProject.get(p.id) || [];
+    const totalMin = list.reduce((s,e)=> s+computeWorkMinutes(e), 0);
+    const uniquePeople = new Set(list.map(e => e.employeeId)).size;
+    return {
+      project: p,
+      totalMin,
+      entries: list.length,
+      people: uniquePeople
+    };
+  }).sort((a,b) => b.totalMin - a.totalMin);
+
+  view.innerHTML = `
+    <div class="content-header">
+      <h2>🧭 Entwicklungsleiter-Ansicht</h2>
+      <div class="toolbar">
+        <div class="field" style="margin:0; min-width:180px">
+          <label>Monat</label>
+          <input id="monthFilter" type="month" />
+        </div>
+        <span class="pill work">Portfolio-Übersicht</span>
+      </div>
+    </div>
+
+    <div class="kpi-row">
+      <div class="kpi">
+        <div class="label">Aktive Projekte</div>
+        <div class="value">${state.data.projects.length}</div>
+        <div class="hint">Demo-Daten</div>
+      </div>
+      <div class="kpi">
+        <div class="label">Erfasste Projektstunden</div>
+        <div class="value">${minutesToHours(rows.reduce((s,r)=>s+r.totalMin,0))} h</div>
+        <div class="hint">${monthVal}</div>
+      </div>
+      <div class="kpi">
+        <div class="label">Beteiligte Mitarbeiter</div>
+        <div class="value">${new Set(entries.map(e=>e.employeeId)).size}</div>
+        <div class="hint">mit mind. 1 Eintrag</div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="panel">
+      <h3>Projekt-Rangliste (Monat)</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Projekt</th>
+            <th>Projektleiter</th>
+            <th class="right">Mitarbeiter</th>
+            <th class="right">Einträge</th>
+            <th class="right">Stunden</th>
+          </tr>
+        </thead>
+        <tbody id="devTableBody"></tbody>
+      </table>
+      <div class="tiny">In einer echten Lösung wäre dies Basis für Ressourcenplanung & Forecast.</div>
+    </div>
+  `;
+
+  document.getElementById("monthFilter").value = monthVal;
+  document.getElementById("monthFilter").addEventListener("change", (e) => {
+    state.ui.filterMonth = e.target.value;
+    render();
+  });
+
+  const tbody = document.getElementById("devTableBody");
+  tbody.innerHTML = "";
+  for(const r of rows){
+    const leaderName = getEmployeeById(r.project.leaderId)?.name || "—";
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${r.project.name}</td>
+      <td>${leaderName}</td>
+      <td class="right">${r.people}</td>
+      <td class="right">${r.entries}</td>
+      <td class="right"><strong>${minutesToHours(r.totalMin)}</strong></td>
+    `;
+    tbody.appendChild(tr);
+  }
+}
+
+function renderHR(){
+  const monthVal = state.ui.filterMonth;
+
+  const summaries = state.data.employees.map(e => {
+    const s = computeEmployeeMonthSummary(e.id, monthVal);
+    return { emp: e, ...s };
+  });
+
+  view.innerHTML = `
+    <div class="content-header">
+      <h2>📅 Personal-Ansicht</h2>
+      <div class="toolbar">
+        <div class="field" style="margin:0; min-width:180px">
+          <label>Monat</label>
+          <input id="monthFilter" type="month" />
+        </div>
+        <span class="pill work">Monatsabschluss</span>
+        <span class="pill leave">Abwesenheitsverwaltung</span>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h3>Monatsübersicht je Mitarbeiter</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Mitarbeiter</th>
+            <th>Anstellung</th>
+            <th class="right">Arbeitszeit</th>
+            <th class="right">Abwesenheit</th>
+            <th class="right">Soll</th>
+            <th class="right">Saldo</th>
+          </tr>
+        </thead>
+        <tbody id="hrBody"></tbody>
+      </table>
+      <div class="tiny">
+        Demo-Interpretation: Abwesenheiten zählen als gutgeschriebene Zeit.
+        In realen Prozessen wären Regelwerke je Abwesenheitsart & Vertrag notwendig.
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="panel">
+      <h3>Einträge prüfen (alle Mitarbeitenden)</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Datum</th>
+            <th>Mitarbeiter</th>
+            <th>Typ</th>
+            <th>Projekt / Art</th>
+            <th class="right">Stunden</th>
+            <th>Notiz</th>
+          </tr>
+        </thead>
+        <tbody id="hrEntriesBody"></tbody>
+      </table>
+    </div>
+  `;
+
+  document.getElementById("monthFilter").value = monthVal;
+  document.getElementById("monthFilter").addEventListener("change", (e) => {
+    state.ui.filterMonth = e.target.value;
+    render();
+  });
+
+  const hrBody = document.getElementById("hrBody");
+  hrBody.innerHTML = "";
+  for(const s of summaries){
+    const flexH = minutesToHours(s.flexMin);
+    const pillClass = s.flexMin < 0 ? "danger" : (s.flexMin === 0 ? "warn" : "work");
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${s.emp.name}</td>
+      <td>${s.emp.type}</td>
+      <td class="right">${minutesToHours(s.workMin)} h</td>
+      <td class="right">${minutesToHours(s.leaveMin)} h</td>
+      <td class="right">${minutesToHours(s.targetMin)} h</td>
+      <td class="right"><span class="pill ${pillClass}">${flexH>0?"+":""}${flexH} h</span></td>
+    `;
+    hrBody.appendChild(tr);
+  }
+
+  const all = entriesInMonth(monthVal)
+    .sort((a,b)=> (a.date > b.date ? -1 : 1));
+
+  const hrEntriesBody = document.getElementById("hrEntriesBody");
+  hrEntriesBody.innerHTML = "";
+  for(const e of all){
+    const empName = getEmployeeById(e.employeeId)?.name || "—";
+    const typeLabel = e.type === "work"
+      ? `<span class="pill work">Arbeit</span>`
+      : `<span class="pill leave">Abwesenheit</span>`;
+    const projOrKind = e.type === "work"
+      ? (getProjectById(e.projectId)?.name || "Unbekannt")
+      : e.leaveKind;
+    const hours = e.type === "work"
+      ? minutesToHours(computeWorkMinutes(e))
+      : minutesToHours(Number(e.leaveMinutes || 0));
+
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${e.date}</td>
+      <td>${empName}</td>
+      <td>${typeLabel}</td>
+      <td>${projOrKind}</td>
+      <td class="right"><strong>${hours}</strong></td>
+      <td>${e.note ? escapeHtml(e.note) : ""}</td>
+    `;
+    hrEntriesBody.appendChild(tr);
+  }
+}
+
+/** =========================
+ *  Seed / Export / Reset
+ *  ========================= */
+
+document.getElementById("seedBtn").addEventListener("click", () => {
+  const d = structuredClone(DEFAULT_DATA);
+  const today = new Date();
+  const d1 = toISODate(today);
+  const d2 = toISODate(new Date(today.getFullYear(), today.getMonth(), today.getDate()-1));
+  const d3 = toISODate(new Date(today.getFullYear(), today.getMonth(), today.getDate()-2));
+
+  d.entries.push(
+    {
+      id: crypto.randomUUID(),
+      type:"work", employeeId:"e1", projectId:"p1", date:d3,
+      startTime:"08:30", endTime:"12:00", breakMinutes:15, note:"Kickoff & Architektur"
+    },
+    {
+      id: crypto.randomUUID(),
+      type:"work", employeeId:"e1", projectId:"p3", date:d3,
+      startTime:"13:00", endTime:"17:15", breakMinutes:15, note:"Interne Automatisierung"
+    },
+    {
+      id: crypto.randomUUID(),
+      type:"work", employeeId:"e2", projectId:"p1", date:d2,
+      startTime:"09:00", endTime:"15:30", breakMinutes:30, note:"Firmware-Implementierung"
+    },
+    {
+      id: crypto.randomUUID(),
+      type:"work", employeeId:"e3", projectId:"p2", date:d2,
+      startTime:"08:00", endTime:"17:00", breakMinutes:45, note:"Cloud-Workshops beim Kunden"
+    },
+    {
+      id: crypto.randomUUID(),
+      type:"leave", employeeId:"e2", date:d1,
+      leaveKind:"Ferien", leaveMinutes: 8*60, note:""
+    }
+  );
+
+  state.data = d;
+  saveData(state.data);
+  render();
+});
+
+document.getElementById("resetBtn").addEventListener("click", () => {
+  localStorage.removeItem(STORE_KEY);
+  state.data = loadData();
+  state.ui.selectedEmployeeId = "e1";
+  state.ui.selectedProjectId = "p1";
+  state.ui.filterMonth = toMonthInputValue(new Date());
+  render();
+});
+
+document.getElementById("exportBtn").addEventListener("click", () => {
+  const blob = new Blob([JSON.stringify(state.data, null, 2)], {type:"application/json"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "zeiterfassung-demo-export.json";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+});
+
+/** =========================
+ *  Sidebar role buttons
+ *  ========================= */
+document.querySelectorAll(".role-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".role-btn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    setRole(btn.dataset.role);
+  });
+});
+
+/** =========================
+ *  Helpers
+ *  ========================= */
+function escapeHtml(str){
+  return String(str)
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+}
+
+// initial render
+render();
+</script>
+</body>
+</html>
